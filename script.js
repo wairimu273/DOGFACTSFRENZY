@@ -1,40 +1,44 @@
 const container = document.getElementById("fact-container");
 
-// Fetch random dog breed names from the Dog CEO API
-function fetchDogBreed() {
-  fetch("https://dog.ceo/api/breeds/image/random")
-    .then((response) => response.json())
-    .then((data) => {
-      // Extract the breed name from the image URL (e.g., 'poodle' from 'poodle/1234.jpg')
-      const breed = data.message.split("/")[4];
-      const image = data.message; // URL of the random dog image
-
-      // Display the breed name and image
-      const dogBreedElement = renderBreed(breed, image);
-      container.innerHTML = ""; // Clear any previous content
-      container.appendChild(dogBreedElement);
-    })
-    .catch((error) => {
-      console.error("Error fetching dog breed data:", error);
-      container.innerHTML = "Error fetching dog breed data.";
-    });
+async function fetchDogBreed() {
+  try {
+    container.innerHTML = "Fetching a new pup..."; // Loading feedback
+    const response = await fetch("https://dog.ceo/api/breeds/image/random");
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    const data = await response.json();
+    console.log("API Response:", data); // Debug
+    const image = data.message;
+    const breed = image.split("/")[4]?.split("-")[0] || "Unknown"; // Safely extract breed
+    console.log("Breed:", breed, "Image:", image); // Debug
+    const dogBreedElement = renderBreed(breed, image);
+    container.innerHTML = ""; // Clear container
+    container.appendChild(dogBreedElement);
+  } catch (error) {
+    console.error("Error fetching dog breed:", error);
+    container.innerHTML = "Oops! Couldn’t fetch a pup. Try again!";
+  }
 }
 
-// Render a dog breed name and image
 function renderBreed(breed, image) {
   const div = document.createElement("div");
   div.classList.add("fact");
-
-  // Display the dog breed and image
   div.innerHTML = `
-    <img src="${image}" alt="Dog breed image" style="max-width: 200px; height: auto;" />
+    <img src="${image}" alt="Dog breed: ${breed}" style="max-width: 200px; height: auto;">
     <p>Breed: ${breed}</p>
   `;
+  console.log("Rendered image URL:", image); // Debug
   return div;
 }
 
-// Event listener for fetching new dog breeds (Click on "Get New Dog Breed" button)
+// Fetch on button click
 document.getElementById("fetch-btn").addEventListener("click", fetchDogBreed);
 
-// Initial load: Fetch and display a random dog breed
+// Fetch on page load
 window.addEventListener("load", fetchDogBreed);
+
+// Toggle Puppy Mode
+document.getElementById("mode-toggle").addEventListener("change", (e) => {
+  document.body.classList.toggle("puppy-mode", e.target.checked);
+});
